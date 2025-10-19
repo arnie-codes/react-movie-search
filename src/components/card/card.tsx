@@ -21,7 +21,7 @@ export const Card = ({
 }: CardProps) => {
   return (
     <article
-      className="flex flex-col overflow-hidden rounded-xl border-2 border-gray-900 bg-white shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+      className="flex flex-col overflow-hidden rounded-xl border-2 border-gray-900 bg-white shadow-sm transition-shadow hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
       tabIndex={0}
     >
       <div className="aspect-[16/9] w-full overflow-hidden border-b-2 border-gray-900 bg-gray-100">
