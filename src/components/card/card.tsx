@@ -44,7 +44,7 @@ export const Card = ({
           </div>
           <div className="w-full flex justify-between items-center">
             <span className="text-sm text-gray-500 font-medium">Rating:</span>
-            <span className="text-sm text-gray-500">{rating} / 10</span>
+            <span className="text-sm text-gray-500">{rating}</span>
           </div>
         </div>
         <span className="text-sm text-gray-500 font-medium">Plot:</span>

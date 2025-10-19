@@ -1,102 +1,48 @@
-import { useCallback, useState, type ChangeEvent, type FormEvent } from "react";
-import { Input } from "./components/input";
-import { Button } from "./components/button";
-import { Card } from "./components/card";
-import { fetchMoviesByTitle } from "./api/fetch-movies-by-title";
-import { TMDB_IMAGE_BASE_URL } from "./constants/tmdb";
-
-interface MovieCardData {
-  id: number;
-  title: string;
-  year: string;
-  rating: string;
-  plot: string;
-  posterUrl: string;
-}
-
-const POSTER_PLACEHOLDER = "https://placehold.co/400x600?text=No+Poster";
+import { useCallback, type ChangeEvent, type FormEvent } from "react";
+import { SearchBar } from "./components/search-bar";
+import { MovieGrid } from "./components/movie-grid";
+import { useMovieSearch } from "./hooks/use-movie-search";
 
 export function App() {
-  const [query, setQuery] = useState("");
-  const [movies, setMovies] = useState<MovieCardData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    query,
+    setQuery,
+    movies,
+    error,
+    isInitialLoading,
+    isFetchingMore,
+    handleSubmit,
+    sentinelRef,
+  } = useMovieSearch();
 
   const handleQueryChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       setQuery(event.target.value);
     },
-    []
+    [setQuery]
   );
 
   const handleSearch = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const response = await fetchMoviesByTitle({ title: query });
-        const mappedMovies = response.results.map((movie) => {
-          const releaseYear = movie.release_date
-            ? movie.release_date.slice(0, 4)
-            : "Unknown";
-          const rating = movie.vote_average
-            ? movie.vote_average.toFixed(1)
-            : "NR";
-          const posterUrl = movie.poster_path
-            ? `${TMDB_IMAGE_BASE_URL}${movie.poster_path}`
-            : POSTER_PLACEHOLDER;
-
-          return {
-            id: movie.id,
-            title: movie.title,
-            year: releaseYear,
-            rating,
-            plot: movie.overview || "No synopsis available.",
-            posterUrl,
-          };
-        });
-
-        setMovies(mappedMovies);
-      } catch (fetchError) {
-        setError(
-          fetchError instanceof Error
-            ? fetchError.message
-            : "Unable to fetch movies right now."
-        );
-        setMovies([]);
-      } finally {
-        setIsLoading(false);
-      }
+      await handleSubmit();
     },
-    [query]
+    [handleSubmit]
   );
 
   return (
     <div className="mx-auto flex max-w-4xl flex-col gap-6 p-6">
       <header className="flex flex-col gap-2">
         <h1 className="text-4xl font-bold text-gray-900">MovieSeek</h1>
-        <p className="text-sm text-gray-600">Search films powered by TMDB</p>
       </header>
 
-      <form className="flex flex-col gap-3 sm:flex-row" onSubmit={handleSearch}>
-        <Input
-          value={query}
-          onChange={handleQueryChange}
-          hasError={Boolean(error)}
-          aria-label="Movie title"
-        />
-        <Button
-          type="submit"
-          variant="primary"
-          isLoading={isLoading}
-          disabled={isLoading}
-        >
-          {isLoading ? "Searching" : "Search"}
-        </Button>
-      </form>
+      <SearchBar
+        query={query}
+        onQueryChange={handleQueryChange}
+        onSubmit={handleSearch}
+        isLoading={isInitialLoading}
+        hasError={Boolean(error)}
+      />
 
       {error ? (
         <p
@@ -107,29 +53,14 @@ export function App() {
         </p>
       ) : null}
 
-      <section
-        aria-live="polite"
-        className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3"
-      >
-        {movies.length === 0 && !isLoading ? (
-          <p className="col-span-full rounded-md border border-gray-200 bg-white px-4 py-6 text-center text-sm text-gray-600">
-            {query
-              ? "No results found. Try a different title."
-              : "Search for a movie to see results."}
-          </p>
-        ) : (
-          movies.map((movie) => (
-            <Card
-              key={movie.id}
-              title={movie.title}
-              plot={movie.plot}
-              imageUrl={movie.posterUrl}
-              year={movie.year}
-              rating={movie.rating}
-            />
-          ))
-        )}
-      </section>
+      <MovieGrid
+        ref={sentinelRef}
+        movies={movies}
+        isLoading={isInitialLoading}
+        error={error}
+        query={query}
+        isFetchingMore={isFetchingMore}
+      />
     </div>
   );
 }
