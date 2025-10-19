@@ -18,7 +18,11 @@ export const SearchBar = ({
   hasError,
 }: SearchBarProps) => {
   return (
-    <form className="flex flex-col gap-3 sm:flex-row" onSubmit={onSubmit}>
+    <form
+      aria-label="Movie search form"
+      className="flex flex-col gap-3 sm:flex-row"
+      onSubmit={onSubmit}
+    >
       <Input
         value={query}
         onChange={onQueryChange}
