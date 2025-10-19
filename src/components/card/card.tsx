@@ -20,8 +20,11 @@ export const Card = ({
   imageProps,
 }: CardProps) => {
   return (
-    <article className="flex flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="aspect-[16/9] w-full overflow-hidden bg-gray-100">
+    <article
+      className="flex flex-col overflow-hidden rounded-xl border-2 border-gray-900 bg-white shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
+      tabIndex={0}
+    >
+      <div className="aspect-[16/9] w-full overflow-hidden border-b-2 border-gray-900 bg-gray-100">
         <img
           src={imageUrl}
           alt={imageAlt}
@@ -30,22 +33,22 @@ export const Card = ({
           {...imageProps}
         />
       </div>
-      <div className="flex flex-1 flex-col gap-1 p-2 text-gray-900">
+      <div className="flex flex-1 flex-col gap-1 p-3 text-gray-900">
         <header className="flex items-start justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
+          <h2 className="text-sm font-medium text-gray-900">{title}</h2>
         </header>
         <div className="flex flex-col items-center gap-1">
           <div className="w-full flex justify-between items-center">
-            <span>Year:</span>
+            <span className="text-sm text-gray-500 font-medium">Year:</span>
             <span className="text-sm text-gray-500">{year}</span>
           </div>
           <div className="w-full flex justify-between items-center">
-            <span>Rating:</span>
+            <span className="text-sm text-gray-500 font-medium">Rating:</span>
             <span className="text-sm text-gray-500">{rating} / 10</span>
           </div>
         </div>
-        <span>Plot:</span>
-        <span className="text-sm text-gray-500">{plot}</span>
+        <span className="text-sm text-gray-500 font-medium">Plot:</span>
+        <span className="text-sm text-gray-500 line-clamp-3">{plot}</span>
       </div>
     </article>
   );
