@@ -34,6 +34,7 @@ export const useMovieSearch = ({
   // Sentinel lives at the bottom of the grid - when it intersects, we fetch the next page.
   const sentinelNodeRef = useRef<HTMLDivElement | null>(null);
   const latestQueryRef = useRef(initialQuery);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const updateQuery = useCallback((value: string) => {
     // Keep a mutable reference in sync so any async work sees the freshest query
@@ -56,17 +57,34 @@ export const useMovieSearch = ({
         return;
       }
 
-      const response = await fetchMoviesByTitle({
-        title: trimmedQuery,
-        page: pageToLoad,
-      });
-      const mappedMovies = response.results.map(mapMovieToCardData);
+      abortControllerRef.current?.abort();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
 
-      setMovies((previous) =>
-        pageToLoad === 1 ? mappedMovies : [...previous, ...mappedMovies]
-      );
-      setPage(response.page ?? pageToLoad);
-      setTotalPages(response.total_pages ?? response.page ?? pageToLoad);
+      try {
+        const response = await fetchMoviesByTitle({
+          title: trimmedQuery,
+          page: pageToLoad,
+          signal: controller.signal,
+        });
+        const mappedMovies = response.results.map(mapMovieToCardData);
+
+        setMovies((previous) =>
+          pageToLoad === 1 ? mappedMovies : [...previous, ...mappedMovies]
+        );
+        setPage(response.page ?? pageToLoad);
+        setTotalPages(response.total_pages ?? response.page ?? pageToLoad);
+      } catch (fetchError) {
+        if (fetchError instanceof Error && fetchError.name === "AbortError") {
+          return;
+        }
+
+        throw fetchError;
+      } finally {
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
+        }
+      }
     },
     [clearResults]
   );
@@ -78,6 +96,10 @@ export const useMovieSearch = ({
     try {
       await loadPage(1);
     } catch (fetchError) {
+      if (fetchError instanceof Error && fetchError.name === "AbortError") {
+        return;
+      }
+
       setError(
         fetchError instanceof Error
           ? fetchError.message
@@ -108,6 +130,10 @@ export const useMovieSearch = ({
     try {
       await loadPage(nextPage);
     } catch (fetchError) {
+      if (fetchError instanceof Error && fetchError.name === "AbortError") {
+        return;
+      }
+
       setError(
         fetchError instanceof Error
           ? fetchError.message
@@ -121,6 +147,7 @@ export const useMovieSearch = ({
   useEffect(() => {
     return () => {
       observerRef.current?.disconnect();
+      abortControllerRef.current?.abort();
     };
   }, []);
 

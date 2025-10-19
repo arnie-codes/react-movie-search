@@ -89,10 +89,12 @@ describe("useMovieSearch", () => {
       await hookRef.current?.handleSubmit();
     });
 
-    expect(fetchMoviesByTitleMock).toHaveBeenCalledWith({
-      title: "Inception",
-      page: 1,
-    });
+    expect(fetchMoviesByTitleMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "Inception",
+        page: 1,
+      })
+    );
     expect(hookRef.current?.movies).toHaveLength(1);
     expect(hookRef.current?.movies[0]?.title).toBe("Inception");
   });
@@ -114,10 +116,12 @@ describe("useMovieSearch", () => {
       await hookRef.current?.handleLoadMore();
     });
 
-    expect(fetchMoviesByTitleMock).toHaveBeenLastCalledWith({
-      title: "Nolan",
-      page: 2,
-    });
+    expect(fetchMoviesByTitleMock).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        title: "Nolan",
+        page: 2,
+      })
+    );
     expect(hookRef.current?.movies.map((movie) => movie.title)).toEqual([
       "Inception",
       "Oppenheimer",
