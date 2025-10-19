@@ -33,23 +33,31 @@ export const useMovieSearch = ({
   const observerRef = useRef<IntersectionObserver | null>(null);
   // Sentinel lives at the bottom of the grid - when it intersects, we fetch the next page.
   const sentinelNodeRef = useRef<HTMLDivElement | null>(null);
+  const latestQueryRef = useRef(initialQuery);
 
-  const resetState = useCallback(() => {
+  const updateQuery = useCallback((value: string) => {
+    // Keep a mutable reference in sync so any async work sees the freshest query
+    latestQueryRef.current = value;
+    setQuery(value);
+  }, []);
+
+  const clearResults = useCallback(() => {
     setMovies([]);
-    setError(null);
     setPage(0);
     setTotalPages(0);
   }, []);
 
   const loadPage = useCallback(
     async (pageToLoad: number) => {
-      if (!query.trim()) {
-        resetState();
+      const trimmedQuery = latestQueryRef.current.trim();
+      if (!trimmedQuery) {
+        setError(null);
+        clearResults();
         return;
       }
 
       const response = await fetchMoviesByTitle({
-        title: query,
+        title: trimmedQuery,
         page: pageToLoad,
       });
       const mappedMovies = response.results.map(mapMovieToCardData);
@@ -60,7 +68,7 @@ export const useMovieSearch = ({
       setPage(response.page ?? pageToLoad);
       setTotalPages(response.total_pages ?? response.page ?? pageToLoad);
     },
-    [query, resetState]
+    [clearResults]
   );
 
   const handleSubmit = useCallback(async () => {
@@ -75,18 +83,18 @@ export const useMovieSearch = ({
           ? fetchError.message
           : "Unable to fetch movies right now."
       );
-      resetState();
+      clearResults();
     } finally {
       setIsInitialLoading(false);
     }
-  }, [loadPage, resetState]);
+  }, [clearResults, loadPage]);
 
   const handleLoadMore = useCallback(async () => {
     if (isInitialLoading || isFetchingMore) {
       return;
     }
 
-    if (!query.trim()) {
+    if (!latestQueryRef.current.trim()) {
       return;
     }
 
@@ -108,7 +116,7 @@ export const useMovieSearch = ({
     } finally {
       setIsFetchingMore(false);
     }
-  }, [isInitialLoading, isFetchingMore, loadPage, page, query, totalPages]);
+  }, [isInitialLoading, isFetchingMore, loadPage, page, totalPages]);
 
   useEffect(() => {
     return () => {
@@ -157,7 +165,7 @@ export const useMovieSearch = ({
 
   return {
     query,
-    setQuery,
+    setQuery: updateQuery,
     movies,
     error,
     isInitialLoading,
