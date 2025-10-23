@@ -1,6 +1,7 @@
 import { type ImgHTMLAttributes } from "react";
 
 export interface CardProps {
+  id: number;
   imageUrl: string;
   title: string;
   year: string;
@@ -8,9 +9,12 @@ export interface CardProps {
   plot: string;
   imageAlt?: string;
   imageProps?: ImgHTMLAttributes<HTMLImageElement>;
+  onFavorite: (id: number) => void;
+  isFavorite: boolean;
 }
 
 export const Card = ({
+  id,
   imageUrl,
   title,
   year,
@@ -18,6 +22,8 @@ export const Card = ({
   plot,
   imageAlt = `${title} poster`,
   imageProps,
+  onFavorite,
+  isFavorite,
 }: CardProps) => {
   return (
     <article
@@ -36,6 +42,15 @@ export const Card = ({
       <div className="flex flex-1 flex-col gap-1 p-3 text-gray-900">
         <header className="flex items-start justify-between">
           <h2 className="text-sm font-medium text-gray-900">{title}</h2>
+          <input
+            type="checkbox"
+            onChange={() => onFavorite(id)}
+            checked={isFavorite}
+            id={`favorite-${title}`}
+          />
+          <label className="sr-only" htmlFor={`favorite-${title}`}>
+            Favorite {title}
+          </label>
         </header>
         <div className="flex flex-col items-center gap-1">
           <div className="w-full flex justify-between items-center">

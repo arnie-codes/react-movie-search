@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import type { MovieCardData } from "../../lib/map-movie-to-card";
 import { Card } from "../card";
+import { useFavouritedMovies } from "./hooks";
 
 export interface MovieGridProps {
   movies: MovieCardData[];
@@ -25,6 +26,7 @@ export const MovieGrid = forwardRef<HTMLDivElement, MovieGridProps>(
     },
     sentinelRef
   ) => {
+    const { favorites, handleFavorite } = useFavouritedMovies();
     const showEmptyState = movies.length === 0 && !isLoading && !error;
 
     return (
@@ -39,12 +41,15 @@ export const MovieGrid = forwardRef<HTMLDivElement, MovieGridProps>(
         ) : (
           movies.map((movie) => (
             <Card
+              id={movie.id}
               key={movie.id}
               title={movie.title}
               plot={movie.plot}
               imageUrl={movie.posterUrl}
               year={movie.year}
               rating={movie.rating}
+              onFavorite={handleFavorite}
+              isFavorite={favorites.includes(movie.id)}
             />
           ))
         )}
